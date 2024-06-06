@@ -12,27 +12,29 @@
 
 using namespace std;
 
-enum tipo_pokemon {
-    NULO = 0,
-    NORMAL,
-    FIGHTING,
-    FLYING,
-    POISON,
-    GROUND,
-    ROCK,
-    BUG,
-    GHOST,
-    STEEL,
-    FIRE,
-    WATER,
-    GRASS,
-    ELECTRIC,
-    PSYCHIC,
-    ICE,
-    DRAGON,
-    DARK,
-    FAIRY
+const string TIPOS_POKEMON[] = {
+    "N/A",      // 0
+    "NORMAL",   // 1
+    "FIGHTING", // 2
+    "FLYING",   // 3
+    "POISON",   // 4
+    "GROUND",   // 5
+    "ROCK",     // 6
+    "BUG",      // 7
+    "GHOST",    // 8
+    "STEEL",    // 9
+    "FIRE",     // 10
+    "WATER",    // 11
+    "GRASS",    // 12
+    "ELECTRIC", // 13
+    "PSYCHIC",  // 14
+    "ICE",      // 15
+    "DRAGON",   // 16
+    "DARK",     // 17
+    "FAIRY",    // 18
 };
+
+const int N_CIDADES = 9;
 
 struct adj {
     int origem;
@@ -51,7 +53,7 @@ struct Cidade {
 
 struct Pokemon {
     string nome;
-    tipo_pokemon tipo[2];
+    int tipos[2];
     int pos_x;
     int pos_y;
 };
@@ -68,8 +70,6 @@ TreeNode* remove(TreeNode* root, string nome);
 TreeNode* minValueNode(TreeNode* node);
 void inorder(TreeNode* root);
 void freeTree(TreeNode* root);
-
-const int N_CIDADES = 9;
 
 void cadastro_cidades(struct Cidade* towns);
 void inserir_pokemon(TreeNode*& root);
@@ -219,18 +219,15 @@ void verificar_pokemon(TreeNode* root, string nome) {
 
 void inserir_pokemon(TreeNode*& root) {
     Pokemon p;
-    int tipo1_int, tipo2_int;
 
     cout << "Digite o nome do Pokemon: ";
     cin >> p.nome;
 
     cout << "Digite o tipo primário do Pokemon (0-NULO, 1-NORMAL, ..., 18-FAIRY): ";
-    cin >> tipo1_int;
-    p.tipo[0] = static_cast<tipo_pokemon>(tipo1_int);
+    cin >> p.tipos[0];
 
     cout << "Digite o tipo secundário do Pokemon (0-NULO, 1-NORMAL, ..., 18-FAIRY): ";
-    cin >> tipo2_int;
-    p.tipo[1] = static_cast<tipo_pokemon>(tipo2_int);
+    cin >> p.tipos[1];
 
     cout << "Digite a posição x do Pokemon: ";
     cin >> p.pos_x;
@@ -246,7 +243,7 @@ void print_menu() {
     cout << "2 - Verificação de um Pokemon pelo nome" << endl;
     cout << "3 - Contabilizar a quantidade de Pokemon de cada tipo" << endl;
     cout << "4 - Imprimir informações dos Pokemon por ordem crescente de nome" << endl;
-    cout << "5 - Imprimir Pokemon por ordem alfabética dos tipos" << endl;
+    cout << "5 - Imprimir Pokemons por ordem alfabética dos tipos" << endl;
     cout << "6 - Quantidade de Pokemon num raio de 100m" << endl;
     cout << "7 - Inserir Pokemon manualmente" << endl;
     cout << "8 - Remover Pokemon pelo nome" << endl;
