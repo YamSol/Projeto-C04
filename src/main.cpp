@@ -1,14 +1,8 @@
-// Tema escolhido: Tema 01 - Pokedex
-
-// Integrantes: Gustavo Pivoto Ambrósio
-//              Yam Sol Britto Bertamini
-//              Miguel Vianna Streva
-//              Lucca Ribeiro Zogbi
-//              João Pedro Nunes Vivas de Resende
-
 #include <iostream>
 #include <list>
 #include <string>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -36,6 +30,11 @@ const string TIPOS_POKEMON[] = {
 
 const int N_CIDADES = 9;
 
+struct Ponto {
+    int x;
+    int y;
+};
+
 struct adj {
     int origem;
     int destino;
@@ -47,81 +46,98 @@ struct Cidade {
     string name;
     bool hub;
     list<adj> adj_towns;
-    int pos_x;
-    int pos_y;
+    Ponto posicao;
 };
 
 struct Pokemon {
     string nome;
     int tipos[2];
-    int pos_x;
-    int pos_y;
+    Ponto posicao;
 };
 
-struct TreeNode {
+struct Node {
     Pokemon data;
-    TreeNode* left;
-    TreeNode* right;
+    Node* left;
+    Node* right;
 };
 
-TreeNode* insert(TreeNode* root, Pokemon p);
-TreeNode* search(TreeNode* root, string nome);
-TreeNode* remove(TreeNode* root, string nome);
-TreeNode* minValueNode(TreeNode* node);
-void inorder(TreeNode* root);
-void freeTree(TreeNode* root);
+Node* insert(Node* root, Pokemon p);
+Node* search(Node* root, string nome);
+Node* remove(Node* root, string nome);
+Node* min_value_node(Node* node);
+void inorder(Node* root);
+void freeTree(Node* root);
 
 void cadastro_cidades(struct Cidade* towns);
-void inserir_pokemon(TreeNode*& root);
+void inserir_pokemon(Node*& root);
 void print_menu();
-void verificar_pokemon(TreeNode* root, string nome);
+void verificar_pokemon(Node* root, string nome);
+
+void collectPokemons(Node* root, vector<Pokemon>& pokemons);
+void imprimir_por_tipos(Node* root);
+int count_by_type(Node* root, int tipo);
 
 int main() {
+    // Estruturas de dados
     Cidade towns[9];
-    int opc;
+    Node* pokemons = nullptr;
+    Ponto posicao_usuario = {1,1};
+    
+    // variaveis de leitura
     string nome;
+    int tipo;
 
-    cadastro_cidades(towns);
-
-    TreeNode* root = nullptr;
-
+    int opc;
     while (true) {
+        
+        // Mensagem de boas-vindas ao treinador pokemon.
+        cout << "Olá, Treinador de Pokémon! Bem-vindo à sua Pokédex. Informamos que você está em uma área de 1000 x 1000 m². Sua localização atual é (X =?, Y = ?). Sua Pokédex possui várias funcionalidades que o auxiliarão em sua aventura. Boa caçada!";
+
+        // Printa o menu para o usuário.
         print_menu();
+
+        // Espera o usuário entrar com uma opção na Pokédex.
         cin >> opc;
+        
         switch (opc) {
             case 1:
                 // Melhor rota para chegar ao centro Pokemon mais próximo
-                
+
                 break;
             case 2:
                 // Verificação de um Pokemon pelo nome
                 cout << "Digite o nome do Pokemon: ";
                 cin >> nome;
-                verificar_pokemon(root, nome);
+                verificar_pokemon(pokemons, nome);
                 break;
             case 3:
                 // Contabilizar a quantidade de Pokemon de cada tipo
-                cout << "Digite o tipo do Pokemon para saber quantos tem: ";
+                cout << "Digite o tipo de Pokemon (0-NULO, 1-NORMAL, ..., 18-FAIRY): ";
+                cin >> tipo;
+                cout << "Quantidade de Pokemons do tipo " << TIPOS_POKEMON[tipo] << ": " << count_by_type(pokemons, tipo) << endl;
                 break;
             case 4:
                 // Imprimir informações dos Pokemon por ordem crescente de nome
-                inorder(root);
+                inorder(pokemons);
                 break;
             case 5:
                 // Imprimir Pokemon por ordem alfabética dos tipos
+                imprimir_por_tipos(pokemons);
                 break;
             case 6:
                 // Quantidade de Pokemon num raio de 100m
+                
+                cout << "A quantidade de Pokemon num raio de 100m é: " << pokemon_raio100(pokemons, posicao_usuario);
                 break;
             case 7:
                 // Inserir Pokemon manualmente
-                inserir_pokemon(root);
+                inserir_pokemon(pokemons);
                 break;
             case 8:
                 // Remover Pokemon pelo nome
                 cout << "Digite o nome do Pokemon a ser removido: ";
                 cin >> nome;
-                root = remove(root, nome);
+                pokemons = remove(pokemons, nome);
                 break;
             case 9:
                 // Créditos do trabalho
@@ -132,8 +148,7 @@ int main() {
         }
     }
 
-    freeTree(root);
-
+    freeTree(pokemons);
     return 0;
 }
 
@@ -141,9 +156,9 @@ void cadastro_cidades(Cidade* towns) {
     (void)towns;
 }
 
-TreeNode* insert(TreeNode* root, Pokemon p) {
+Node* insert(Node* root, Pokemon p) {
     if (root == nullptr) {
-        TreeNode* node = new TreeNode();
+        Node* node = new Node();
         node->data = p;
         node->left = node->right = nullptr;
         return node;
@@ -155,7 +170,7 @@ TreeNode* insert(TreeNode* root, Pokemon p) {
     return root;
 }
 
-TreeNode* search(TreeNode* root, string nome) {
+Node* search(Node* root, string nome) {
     if (root == nullptr || root->data.nome == nome)
         return root;
     if (nome < root->data.nome)
@@ -163,7 +178,7 @@ TreeNode* search(TreeNode* root, string nome) {
     return search(root->right, nome);
 }
 
-TreeNode* remove(TreeNode* root, string nome) {
+Node* remove(Node* root, string nome) {
     if (root == nullptr) return root;
     if (nome < root->data.nome)
         root->left = remove(root->left, nome);
@@ -171,37 +186,41 @@ TreeNode* remove(TreeNode* root, string nome) {
         root->right = remove(root->right, nome);
     else {
         if (root->left == nullptr) {
-            TreeNode* temp = root->right;
+            Node* temp = root->right;
             delete root;
             return temp;
         } else if (root->right == nullptr) {
-            TreeNode* temp = root->left;
+            Node* temp = root->left;
             delete root;
             return temp;
         }
-        TreeNode* temp = minValueNode(root->right);
+        Node* temp = min_value_node(root->right);
         root->data = temp->data;
         root->right = remove(root->right, temp->data.nome);
     }
     return root;
 }
 
-TreeNode* minValueNode(TreeNode* node) {
-    TreeNode* current = node;
+Node* min_value_node(Node* node) {
+    Node* current = node;
     while (current && current->left != nullptr)
         current = current->left;
     return current;
 }
 
-void inorder(TreeNode* root) {
+void inorder(Node* root) {
     if (root != nullptr) {
         inorder(root->left);
-        cout << root->data.nome << endl;
+        cout << "Nome: " << root->data.nome 
+             << ", Tipo 1: " << TIPOS_POKEMON[root->data.tipos[0]] 
+             << ", Tipo 2: " << TIPOS_POKEMON[root->data.tipos[1]] 
+             << ", Posição: (" << root->data.pos_x << ", " << root->data.pos_y << ")" 
+             << endl;
         inorder(root->right);
     }
 }
 
-void freeTree(TreeNode* root) {
+void freeTree(Node* root) {
     if (root != nullptr) {
         freeTree(root->left);
         freeTree(root->right);
@@ -209,15 +228,15 @@ void freeTree(TreeNode* root) {
     }
 }
 
-void verificar_pokemon(TreeNode* root, string nome) {
-    TreeNode* result = search(root, nome);
+void verificar_pokemon(Node* root, string nome) {
+    Node* result = search(root, nome);
     if (result != nullptr)
         cout << "Pokemon " << nome << " encontrado na posição (" << result->data.pos_x << ", " << result->data.pos_y << ")." << endl;
     else
         cout << "Pokemon " << nome << " não encontrado." << endl;
 }
 
-void inserir_pokemon(TreeNode*& root) {
+void inserir_pokemon(Node*& root) {
     Pokemon p;
 
     cout << "Digite o nome do Pokemon: ";
@@ -238,6 +257,15 @@ void inserir_pokemon(TreeNode*& root) {
     root = insert(root, p);
 }
 
+int pokemon_raio100(Node*& pokemons, Ponto posicao_jogador){
+
+    if(pokemons != NULL){
+        pokemon_raio100(pokemons->left);
+        if(pokemons->data)
+        pokemon_raio100(pokemons->right);
+        
+    }
+}
 void print_menu() {
     cout << "1 - Melhor rota para chegar ao centro Pokemon mais próximo" << endl;
     cout << "2 - Verificação de um Pokemon pelo nome" << endl;
@@ -248,4 +276,46 @@ void print_menu() {
     cout << "7 - Inserir Pokemon manualmente" << endl;
     cout << "8 - Remover Pokemon pelo nome" << endl;
     cout << "9 - Créditos do trabalho" << endl;
+}
+
+void collectPokemons(Node* root, vector<Pokemon>& pokemons) {
+    if (root == nullptr) {
+        return;
+    }
+    collectPokemons(root->left, pokemons);
+    pokemons.push_back(root->data);
+    collectPokemons(root->right, pokemons);
+}
+
+void imprimir_por_tipos(Node* root) {
+    vector<Pokemon> pokemons;
+    collectPokemons(root, pokemons);
+
+    sort(pokemons.begin(), pokemons.end(), [](const Pokemon& a, const Pokemon& b) {
+        if (TIPOS_POKEMON[a.tipos[0]] != TIPOS_POKEMON[b.tipos[0]]) {
+            return TIPOS_POKEMON[a.tipos[0]] < TIPOS_POKEMON[b.tipos[0]];
+        }
+        return a.nome < b.nome;
+    });
+
+    for (const Pokemon& p : pokemons) {
+        cout << "Nome: " << p.nome 
+             << ", Tipo 1: " << TIPOS_POKEMON[p.tipos[0]] 
+             << ", Tipo 2: " << TIPOS_POKEMON[p.tipos[1]] 
+             << ", Posição: (" << p.pos_x << ", " << p.pos_y << ")" 
+             << endl;
+    }
+}
+
+int count_by_type(Node* root, int tipo) {
+    if (root == nullptr) {
+        return 0;
+    }
+
+    int count = 0;
+    if (root->data.tipos[0] == tipo || root->data.tipos[1] == tipo) {
+        count = 1;
+    }
+
+    return count + count_by_type(root->left, tipo) + count_by_type(root->right, tipo);
 }
