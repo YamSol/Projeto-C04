@@ -1,0 +1,19 @@
+// <nome> \n <id> <hub> <x> <y> <n_adj> [adj...]
+Mount Silver
+20 0 84 0 0
+Pallet Town
+17 1 149 179 1 20
+Celadon City
+02 1 231 192 0 
+Mount Moon
+08 0 118 103 1 17
+Cycling Road
+23 0 107 173 1 02
+Vermilion City
+07 0 220 227 2 02 08
+Kanto Power Plant
+30 1 285 215 1 07
+Safari Zone
+12 0 75 99 3 23 07 30
+Cinnabar Island
+18 1 119 57 1 12

@@ -44,8 +44,8 @@ struct adj
 
 struct Cidade
 {
-	int code;
 	string name;
+	int code;
 	bool hub;
 	list<adj> adj_towns; 
 	int pos_x;
@@ -64,7 +64,7 @@ struct Pokemon
 int const N_CIDADES = 9;
 int const N_POKEMONS = 50;
 
-void cadastro_cidades(struct Cidade *towns);
+void cadastro_cidades(Cidade *towns);
 void cadastro_pokemons(Pokemon *pokemons);
 void print_menu();
 
@@ -87,94 +87,6 @@ int main()
 }
 
 
-
-void cadastro_cidades(struct Cidade *towns)
-{
-
-	/*
-	 20 0 84 0  "Mount Silver"
-	 17 1 149 179  "Pallet Town"
-	 2 1 231 192  "Celadon City"
-	 8 0 118 103  "Mount Moon"
-	 20 0 107 173  "Cycling Road"
-	 7 0 220 227  "Vermilion City"
-	 2 1 285 215  "Kanto Power Plant"
-	 8 0 75 99  "Safari Zone"
-	 18 1 119 57  "Cinnabar Island"
-	*/
-	// ADJ (10)
-		// 1 0
-		// 1 3
-		// 2 4
-		// 2 5
-		// 3 5
-		// 4 7
-		// 5 6
-		// 5 7
-		// 6 7
-		// 7 8
-
-	cout << "Quantas cidades deseja inserir?\n";
-	int n;
-	for (int i = 0; i < n; i++)
-	{
-		cout << "Cidade [" << i << "] \n";
-		cout << "- Nome: ";
-		cin >> towns[0].name;
-		cout << "- Codigo: ";
-		cin >> towns[0].code;
-		cout << "- Possui hub? (0,1): ";
-		cin >> towns[0].hub;
-		cout << "Posição (Ex: '100 200'): ";
-		cin >> towns[0].pos_x;
-		cin >> towns[0].pos_y;
-	}
-	
-	// Cadastro nomes cidades
-
-	// // Cadastro cidades adjacentes
-	// origem = 0;
-	// destino = 1;
-	// towns[origem].adj_towns.push_back({origem, destino});
-	// towns[destino].adj_towns.push_back({destino, origem});
-
-	// //cidades que tem adj (origem, destino)
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-
-	// Definindo se existe centro Pokemon na cidade ou não
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-
-	// Definição das posições das cidades
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	*/
-	return;
-}
 
 void print_menu()
 {

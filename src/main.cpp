@@ -28,7 +28,6 @@ const string TIPOS_POKEMON[] = {
     "FAIRY",    // 18
 };
 
-const int N_CIDADES = 9;
 
 struct Ponto {
     int x;
@@ -42,8 +41,8 @@ struct adj {
 };
 
 struct Cidade {
-    int code;
     string name;
+    int code;
     bool hub;
     list<adj> adj_towns;
     Ponto posicao;
@@ -61,21 +60,22 @@ struct Node {
     Node* right;
 };
 
+void print_menu();
+void print_types();
 Node* insert(Node* root, Pokemon p);
 Node* search(Node* root, string nome);
 Node* remove(Node* root, string nome);
 Node* min_value_node(Node* node);
-void inorder(Node* root);
-void freeTree(Node* root);
+void in_order(Node* root);
+void free_tree(Node* root);
+void read_pokemon(Node*& root);
+void verificar_pokemon(Node* root, string nome);
+void show_pokemon_by_type(Node* root);
+int count_pokemon_by_type(Node* root, int tipo);
 
 void cadastro_cidades(struct Cidade* towns);
-void inserir_pokemon(Node*& root);
-void print_menu();
-void verificar_pokemon(Node* root, string nome);
 
 void collectPokemons(Node* root, vector<Pokemon>& pokemons);
-void imprimir_por_tipos(Node* root);
-int count_by_type(Node* root, int tipo);
 
 int main() {
     // Estruturas de dados
@@ -86,8 +86,8 @@ int main() {
     // variaveis de leitura
     string nome;
     int tipo;
-
     int opc;
+
     while (true) {
         
         // Mensagem de boas-vindas ao treinador pokemon.
@@ -106,7 +106,7 @@ int main() {
                 break;
             case 2:
                 // Verificação de um Pokemon pelo nome
-                cout << "Digite o nome do Pokemon: ";
+                cout << "Digite o nome do Pokemon a ser verificado: ";
                 cin >> nome;
                 verificar_pokemon(pokemons, nome);
                 break;
@@ -114,15 +114,15 @@ int main() {
                 // Contabilizar a quantidade de Pokemon de cada tipo
                 cout << "Digite o tipo de Pokemon (0-NULO, 1-NORMAL, ..., 18-FAIRY): ";
                 cin >> tipo;
-                cout << "Quantidade de Pokemons do tipo " << TIPOS_POKEMON[tipo] << ": " << count_by_type(pokemons, tipo) << endl;
+                cout << "Quantidade de Pokemons do tipo " << TIPOS_POKEMON[tipo] << ": " << count_pokemon_by_type(pokemons, tipo) << endl;
                 break;
             case 4:
                 // Imprimir informações dos Pokemon por ordem crescente de nome
-                inorder(pokemons);
+                in_order(pokemons);
                 break;
             case 5:
                 // Imprimir Pokemon por ordem alfabética dos tipos
-                imprimir_por_tipos(pokemons);
+                show_pokemon_by_type(pokemons);
                 break;
             case 6:
                 // Quantidade de Pokemon num raio de 100m
@@ -131,7 +131,7 @@ int main() {
                 break;
             case 7:
                 // Inserir Pokemon manualmente
-                inserir_pokemon(pokemons);
+                read_pokemon(pokemons);
                 break;
             case 8:
                 // Remover Pokemon pelo nome
@@ -148,12 +148,32 @@ int main() {
         }
     }
 
-    freeTree(pokemons);
+    free_tree(pokemons);
     return 0;
 }
 
-void cadastro_cidades(Cidade* towns) {
-    (void)towns;
+void print_menu() {
+    cout << "(nao implm.)1 - Melhor rota para chegar ao centro Pokemon mais próximo \n";
+    cout << "2 - Verificação de um Pokemon pelo nome\n";
+    cout << "3 - Contabilizar a quantidade de Pokemon de cada tipo\n";
+    cout << "4 - Imprimir informações dos Pokemon por ordem crescente de nome\n";
+    cout << "5 - Imprimir Pokemons por ordem alfabética dos tipos\n";
+    cout << "6 - Quantidade de Pokemon num raio de 100m\n";
+    cout << "7 - Inserir Pokemon manualmente\n";
+    cout << "8 - Remover Pokemon pelo nome\n";
+    cout << "9 - Créditos do trabalho\n";
+}
+
+void print_types() {
+    cout << "+-------------------------------------------\n";
+    cout << "||\n";
+    cout << "||\n";
+    cout << "||\n";
+    cout << "||\n";
+    cout << "||\n";
+    cout << "||\n";
+    cout << "||\n";
+    cout << "+-------------------------------------------\n";
 }
 
 Node* insert(Node* root, Pokemon p) {
@@ -208,22 +228,22 @@ Node* min_value_node(Node* node) {
     return current;
 }
 
-void inorder(Node* root) {
+void in_order(Node* root) {
     if (root != nullptr) {
-        inorder(root->left);
+        in_order(root->left);
         cout << "Nome: " << root->data.nome 
              << ", Tipo 1: " << TIPOS_POKEMON[root->data.tipos[0]] 
              << ", Tipo 2: " << TIPOS_POKEMON[root->data.tipos[1]] 
-             << ", Posição: (" << root->data.pos_x << ", " << root->data.pos_y << ")" 
+             << ", Posição: (" << root->data.posicao.x << ", " << root->data.posicao.y << ")" 
              << endl;
-        inorder(root->right);
+        in_order(root->right);
     }
 }
 
-void freeTree(Node* root) {
+void free_tree(Node* root) {
     if (root != nullptr) {
-        freeTree(root->left);
-        freeTree(root->right);
+        free_tree(root->left);
+        free_tree(root->right);
         delete root;
     }
 }
@@ -231,12 +251,12 @@ void freeTree(Node* root) {
 void verificar_pokemon(Node* root, string nome) {
     Node* result = search(root, nome);
     if (result != nullptr)
-        cout << "Pokemon " << nome << " encontrado na posição (" << result->data.pos_x << ", " << result->data.pos_y << ")." << endl;
+        cout << "Pokemon " << nome << " encontrado na posição (" << result->data.posicao.x << ", " << result->data.posicao.y << ")." << endl;
     else
         cout << "Pokemon " << nome << " não encontrado." << endl;
 }
 
-void inserir_pokemon(Node*& root) {
+void read_pokemon(Node*& root) {
     Pokemon p;
 
     cout << "Digite o nome do Pokemon: ";
@@ -249,10 +269,10 @@ void inserir_pokemon(Node*& root) {
     cin >> p.tipos[1];
 
     cout << "Digite a posição x do Pokemon: ";
-    cin >> p.pos_x;
+    cin >> p.posicao.x;
 
     cout << "Digite a posição y do Pokemon: ";
-    cin >> p.pos_y;
+    cin >> p.posicao.y;
 
     root = insert(root, p);
 }
@@ -260,22 +280,11 @@ void inserir_pokemon(Node*& root) {
 int pokemon_raio100(Node*& pokemons, Ponto posicao_jogador){
 
     if(pokemons != NULL){
-        pokemon_raio100(pokemons->left);
-        if(pokemons->data)
-        pokemon_raio100(pokemons->right);
+        pokemon_raio100(pokemons->left, posicao_jogador);
+        // if(pokemons->data)
+        pokemon_raio100(pokemons->right, posicao_jogador);
         
     }
-}
-void print_menu() {
-    cout << "1 - Melhor rota para chegar ao centro Pokemon mais próximo" << endl;
-    cout << "2 - Verificação de um Pokemon pelo nome" << endl;
-    cout << "3 - Contabilizar a quantidade de Pokemon de cada tipo" << endl;
-    cout << "4 - Imprimir informações dos Pokemon por ordem crescente de nome" << endl;
-    cout << "5 - Imprimir Pokemons por ordem alfabética dos tipos" << endl;
-    cout << "6 - Quantidade de Pokemon num raio de 100m" << endl;
-    cout << "7 - Inserir Pokemon manualmente" << endl;
-    cout << "8 - Remover Pokemon pelo nome" << endl;
-    cout << "9 - Créditos do trabalho" << endl;
 }
 
 void collectPokemons(Node* root, vector<Pokemon>& pokemons) {
@@ -287,7 +296,7 @@ void collectPokemons(Node* root, vector<Pokemon>& pokemons) {
     collectPokemons(root->right, pokemons);
 }
 
-void imprimir_por_tipos(Node* root) {
+void show_pokemon_by_type(Node* root) {
     vector<Pokemon> pokemons;
     collectPokemons(root, pokemons);
 
@@ -302,12 +311,12 @@ void imprimir_por_tipos(Node* root) {
         cout << "Nome: " << p.nome 
              << ", Tipo 1: " << TIPOS_POKEMON[p.tipos[0]] 
              << ", Tipo 2: " << TIPOS_POKEMON[p.tipos[1]] 
-             << ", Posição: (" << p.pos_x << ", " << p.pos_y << ")" 
+             << ", Posição: (" << p.posicao.x << ", " << p.posicao.y << ")" 
              << endl;
     }
 }
 
-int count_by_type(Node* root, int tipo) {
+int count_pokemon_by_type(Node* root, int tipo) {
     if (root == nullptr) {
         return 0;
     }
@@ -317,5 +326,31 @@ int count_by_type(Node* root, int tipo) {
         count = 1;
     }
 
-    return count + count_by_type(root->left, tipo) + count_by_type(root->right, tipo);
+    return count + count_pokemon_by_type(root->left, tipo) + count_pokemon_by_type(root->right, tipo);
 }
+
+void cadastro_cidades(Cidade* towns) {
+	cout << "Quantas cidades deseja inserir? ";
+	int num_cidades, num_adj, cidade_destino;
+	for (int i = 0; i < num_cidades; i++) {
+		cout << "Cidade [" << i << "] \n";
+		cout << "- Nome: ";
+		cin >> towns[i].name;
+		cout << "- Codigo: ";
+		cin >> towns[i].code;
+		cout << "- Possui hub? (0,1): ";
+		cin >> towns[i].hub;
+		cout << "- Posição (Ex: '100 200'): ";
+		cin >> towns[i].posicao.x;
+		cin >> towns[i].posicao.y;
+
+		cout << "- Número de Cidades adjacentes: ";
+		cin >> num_adj;
+		for (int j = 0; j < num_adj; j++) {
+			cin >> cidade_destino;
+			towns[i].adj_towns.push_back({towns[i].code,cidade_destino});
+		}
+		
+	}
+}
+
