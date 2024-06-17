@@ -36,18 +36,18 @@ using namespace std;
 typedef int tipo_pokemon;
 
 
-struct adj
+struct edge
 {
-	int origem;
-	int destino;
+	int orig;
+	int dest;
 };
 
 struct Cidade
 {
 	string name;
-	int code;
-	bool hub;
-	list<adj> adj_towns; 
+	int id;
+	bool isHubPresent;
+	list<edge> adj_towns; 
 	int pos_x;
 	int pos_y;
 };
@@ -55,8 +55,8 @@ struct Cidade
 struct Pokemon
 {
 	string nome;
+	int codigo;
 	tipo_pokemon tipo[2];
-	// int codigo;
 	int pos_x;
 	int pos_y;
 };

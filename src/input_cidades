@@ -1,4 +1,4 @@
-// <nome> \n <id> <hub> <x> <y> <n_adj> [adj...]
+// <nome> \n <id> <hub> <x> <y> <num_ adjacencia> [adjacencia1] [adjacencia2] ... 
 Mount Silver
 20 0 84 0 0
 Pallet Town
