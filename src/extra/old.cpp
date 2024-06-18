@@ -42,12 +42,12 @@ struct edge
 	int dest;
 };
 
-struct Cidade
+struct CityInfo
 {
 	string name;
 	int id;
 	bool isHubPresent;
-	list<edge> adj_towns; 
+	list<edge> adj_cidades; 
 	int pos_x;
 	int pos_y;
 };
@@ -64,14 +64,14 @@ struct Pokemon
 int const N_CIDADES = 9;
 int const N_POKEMONS = 50;
 
-void cadastro_cidades(Cidade *towns);
+void cadastro_cidades(CityInfo *towns);
 void cadastro_pokemons(Pokemon *pokemons);
 void print_menu();
 
 int main()
 {
 	int MAPA[300][300];
-	Cidade towns[9];
+	CityInfo towns[9];
 	Pokemon pokemons[50];
 	int opc;
 
