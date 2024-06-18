@@ -47,7 +47,7 @@ struct CityInfo
 	string name;
 	int id;
 	bool isHubPresent;
-	list<edge> adj_cidades; 
+	list<edge> cityEdges; 
 	int pos_x;
 	int pos_y;
 };
@@ -64,9 +64,9 @@ struct Pokemon
 int const N_CIDADES = 9;
 int const N_POKEMONS = 50;
 
-void cadastro_cidades(CityInfo *towns);
+void registerCities(CityInfo *towns);
 void cadastro_pokemons(Pokemon *pokemons);
-void print_menu();
+void showMenu();
 
 int main()
 {
@@ -76,11 +76,11 @@ int main()
 	int opc;
 
 	// Cadastrar informações
-	cadastro_cidades(towns);
+	registerCities(towns);
 	cadastro_pokemons(pokemons);
 
 	// Menu
-	print_menu();
+	showMenu();
 	cin >> opc;
 
 	return 0;
@@ -88,7 +88,7 @@ int main()
 
 
 
-void print_menu()
+void showMenu()
 {
 	cout << "######################################################################################################################################" << endl;
 	cout << "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm##" << endl;
