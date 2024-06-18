@@ -45,7 +45,7 @@ struct edge
 struct CityInfo
 {
 	string name;
-	int id;
+	int codigo;
 	bool isHubPresent;
 	list<edge> cityEdges; 
 	int pos_x;
