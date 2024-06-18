@@ -18,27 +18,26 @@ using namespace std;
 #define NUM_POKEMON_TYPES 19
 #define NUM_CITIES 9
 
-
 const string POKEMON_TYPES[] = {
-    "N/A     ", // 0
-    "NORMAL  ", // 1
+    "N/A",      // 0
+    "NORMAL",   // 1
     "FIGHTING", // 2
-    "FLYING  ", // 3
-    "POISON  ", // 4
-    "GROUND  ", // 5
-    "ROCK    ", // 6
-    "BUG     ", // 7
-    "GHOST   ", // 8
-    "STEEL   ", // 9
-    "FIRE    ", // 10
-    "WATER   ", // 11
-    "GRASS   ", // 12
+    "FLYING",   // 3
+    "POISON",   // 4
+    "GROUND",   // 5
+    "ROCK",     // 6
+    "BUG",      // 7
+    "GHOST",    // 8
+    "STEEL",    // 9
+    "FIRE",     // 10
+    "WATER",    // 11
+    "GRASS",    // 12
     "ELECTRIC", // 13
-    "PSYCHIC ", // 14
-    "ICE     ", // 15
-    "DRAGON  ", // 16
-    "DARK    ", // 17
-    "FAIRY   ", // 18
+    "PSYCHIC",  // 14
+    "ICE",      // 15
+    "DRAGON",   // 16
+    "DARK",     // 17
+    "FAIRY",    // 18
 };
 
 struct Ponto {
@@ -105,8 +104,8 @@ int   countPokemonInRadius(Node *root, Ponto position, int raio);
 // Pokemon aux functions
 void  collectPokemons(Node *root, vector<Pokemon> &pokemons);
 Node *searchPokemonInTree(Node *root, string nome);
-Node *getSmallestNode(Node *node);
-
+Node *getSmallestNode(Node *root);
+int   calculateTreeDepth(Node *root);
 
 int main() {
   // Estruturas de dados
@@ -136,6 +135,7 @@ int main() {
     cout << "\n\n";
 
     int opc = showMenu();
+    clearScreen();
     handleUserOption(opc, cityArray, userLocation, pokemons);
 
     pauseProgram();
@@ -168,20 +168,26 @@ void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation, Node 
     printPokemonTypes();
     cout << "Digite o tipo de Pokemon:";
     cin >> tipo;
-    cout << "Quantidade de Pokemons do tipo " << POKEMON_TYPES[tipo] << ": "
+    cout << "\n\nQuantidade de Pokemons do tipo " << POKEMON_TYPES[tipo] << ": "
          << countPokemonByType(pokemons, tipo) << endl;
     break;
   case 4:
     // Imprimir informações dos Pokemon por ordem crescente de nome
-    printPokemonInOrder(pokemons);
+    if (calculateTreeDepth(pokemons) == 0)
+      cout << "\n\nNenhum Pokemon cadastrado.\n";
+    else
+      printPokemonInOrder(pokemons);
     break;
   case 5:
     // Imprimir Pokemon por ordem alfabética dos tipos
-    printPokemonByType(pokemons);
+    if (calculateTreeDepth(pokemons) == 0)
+      cout << "\n\nNenhum Pokemon cadastrado.\n";
+    else
+      printPokemonByType(pokemons);
     break;
   case 6:
     // Quantidade de Pokemon num raio de 100m
-    cout << "A quantidade de Pokemon num raio de 100m e: "
+    cout << "A quantidade de Pokemon num raio de 100m é: "
          << countPokemonInRadius(pokemons, userLocation, 100) << endl;
     break;
   case 7:
@@ -258,7 +264,7 @@ void registerCities(CityInfo cityArray[], int n_cidades) {
 int showMenu() {
   int opc;
   cout << "===================== MENU =====================\n";
-  cout << "1 - Centro Pokemon mais próximo;\n"; // Nao implementada
+  cout << "1 - Ir para centro Pokemon mais próximo;\n"; // Nao implementada
   cout << "2 - Verificacao Pokemon;\n";
   cout << "3 - Quantidade de Pokemons (por tipo);\n";
   cout << "4 - Mostrar Pokemons;\n";
@@ -298,7 +304,7 @@ void printPokemonTypes() {
 
 void clearScreen() { cout << "\x1B[2J\x1B[H"; }
 inline void pauseProgram() {
-  cout << "-----------------------------\n";
+  cout << "\n\n-----------------------------\n";
   cout << "  Press Enter to continue...\n";
   cout << "-----------------------------\n";
   cin.ignore();
@@ -349,11 +355,11 @@ void verifyPokemon(Node *root, string nome) {
 
   Node *result = searchPokemonInTree(root, nome);
   if (result != NULL)
-    cout << "Pokemon " << nome << " encontrado na posicao ("
+    cout << "\nPokemon " << nome << " encontrado na posicao ("
          << result->data.position.x << ", " << result->data.position.y << ")."
          << endl;
   else
-    cout << "Pokemon " << nome << " nao encontrado." << endl;
+    cout << "\nPokemon " << nome << " nao encontrado." << endl;
 }
 Node *searchPokemonInTree(Node *root, string nome) {
   if (root == NULL)
@@ -451,7 +457,7 @@ void inputPokemon(Node *&root) {
   cout << "Tipo secundário: ";
   cin >> p.secoundaryType;
 
-  cout << "Posição (X Y)";
+  cout << "Posição (X Y): ";
   cin >> p.position.x >> p.position.y;
 
   root = insertPokemonNode(root, p);
@@ -459,10 +465,10 @@ void inputPokemon(Node *&root) {
 
 Node *insertPokemonNode(Node *root, Pokemon p) {
   if (root == NULL) {
-    Node *node = new Node();
-    node->data = p;
-    node->left = node->right = NULL;
-    return node;
+    Node *root = new Node();
+    root->data = p;
+    root->left = root->right = NULL;
+    return root;
   }
   if (p.nome < root->data.nome)
     root->left = insertPokemonNode(root->left, p);
@@ -471,7 +477,7 @@ Node *insertPokemonNode(Node *root, Pokemon p) {
   return root;
 }
 
-// 9ª função - Remover Pokemon pelo nome
+// 10ª função - Remover Pokemon pelo nome
 Node *removePokemonNode(Node *root, string nome) {
   if (root == NULL)
     return root;
@@ -496,8 +502,8 @@ Node *removePokemonNode(Node *root, string nome) {
   return root;
 }
 
-Node *getSmallestNode(Node *node) {
-  Node *current = node;
+Node *getSmallestNode(Node *root) {
+  Node *current = root;
   while (current && current->left != NULL)
     current = current->left;
   return current;
@@ -506,6 +512,12 @@ Node *getSmallestNode(Node *node) {
 //////////////////////////////////////////////////////////////////// Funções
 /// auxiliares
 /////////////////////////////////////////////////////////////////////////
+
+int   calculateTreeDepth(Node *root) {
+  if (root == NULL)
+    return 0;
+  return 1 + max(calculateTreeDepth(root->left), calculateTreeDepth(root->right));
+}
 
 int findIndexByID(CityInfo cityArray[], int targetCityId) {
   for (int i = 0; i < NUM_CITIES; i++)
