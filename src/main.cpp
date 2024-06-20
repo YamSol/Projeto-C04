@@ -73,21 +73,28 @@ struct Node {
   Node *right;
 };
 
+// -------  MENU FUNCTIONS
 int showMenu();
 void clearScreen();
 void pauseProgram();
-void printPokemonTypes();
 void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation, Node *&pokemons);
+void welcomeMessage();
+
+// -------  USER FUNCTIONS
+void changeLocation(CityInfo cityArray[], Ponto &userLocation);
 
 // ------- TOWN FUNCTIONS
+void inputCities(CityInfo cityArray[]);
+void computeEdgeDistances(CityInfo cityArray[]);
+void dijkstraShortestPath(CityInfo cityArray[], Ponto &userLocation);
 
-void registerCities(CityInfo cityArray[], int n_cidades);
-void computeEdgeDistances(CityInfo cityArray[], int n_cidades);
-void dijkstraShortestPath(CityInfo cityArray[], int num_cities, Ponto userLocation);
 
 // Town aux functions
 double calculateDistance(Ponto p1, Ponto p2);
-int    findIndexByID(CityInfo cityArray[], int targetCityId);
+int findIndexByID(CityInfo cityArray[], int targetCityId);
+int getNearestHubIndex(CityInfo cityArray[], int distance[]);
+void printPath(CityInfo cityArray[], int parent[], int nearestHubIndex, int startIndex);
+
 
 // ------- POKEMON FUNCTIONS
 
@@ -95,9 +102,9 @@ void  inputPokemon(Node *&root, int i);
 Node *insertPokemonNode(Node *root, Pokemon p);
 Node *removePokemonNode(Node *root, string nome);
 void  destroyPokemonTree(Node *root);
-void  printPokemonInOrder(Node *root);
-void  printAllPokemonByType(Node *root);
-void  verifyPokemon(Node *root, string nome);
+void  printPokemonsInOrder(Node *root);
+void  printPokemonsByType(Node *root);
+void  isPokemonInTree(Node *root, string nome);
 int   countPokemonByType(Node *root, int tipo);
 int   countPokemonInRadius(Node *root, Ponto position, int raio);
 
@@ -106,6 +113,7 @@ void  collectPokemons(Node *root, vector<Pokemon> &pokemons);
 Node *searchPokemonInTree(Node *root, string nome);
 Node *getSmallestNode(Node *root);
 int   calculateTreeDepth(Node *root);
+void printPokemonTypes();
 
 int main() {
   // Estruturas de dados
@@ -115,22 +123,16 @@ int main() {
 
   // Cadastrando cidades no sistema e setando a posição do usuário
   cout << "ADMIN: Inserindo dados das cidades:\n";
-  registerCities(cityArray, NUM_CITIES);
+  inputCities(cityArray);
   userLocation.x = cityArray[0].position.x;
   userLocation.y = cityArray[0].position.y;
   clearScreen();
 
   // Mensagem de boas-vindas ao treinador pokemon.
-  cout << "\n\n\n\n\n\n\n";
-  cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-  cout << "Olá, Treinador(a) Pokemon! Bem-vindo a sua Pokedex. Informamos que "
-          "voce está em uma área de 1000 x 1000 m². Sua Pokedex possui varias "
-          "funcionalidades que o auxiliarão em sua aventura. Boa caçada!\n";
-  cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-  cout << "\n\n";
+  welcomeMessage();
 
   while (true) {
-    cout << "Sua localização atual é (X = " << userLocation.x
+    cout << "Atualmente você se encontra na cidade " << " (X = " << userLocation.x
          << ", Y = " << userLocation.y << ").\n";
     cout << "\n\n";
 
@@ -147,81 +149,88 @@ int main() {
   return 0;
 }
 
-void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation, Node *&pokemons) {
+void welcomeMessage();
+
+void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation,
+                      Node *&pokemons) {
   // variaveis de leitura
   string nome;
   int tipo;
   int numPokemons;
-
+  
   switch (opc) {
-  case 1:
-    // Melhor rota para chegar ao centro Pokemon mais próximo
-    dijkstraShortestPath(cityArray, NUM_CITIES, userLocation);
-    break;
-  case 2:
-    // Verificação de um Pokemon pelo nome
-    cout << "Digite o nome do Pokemon a ser verificado: ";
-    cin >> nome;
-    verifyPokemon(pokemons, nome);
-    break;
-  case 3:
-    // Contabilizar a quantidade de Pokemon de cada tipo
-    printPokemonTypes();
-    cout << "Digite o tipo de Pokemon:";
-    cin >> tipo;
-    cout << "\n\nQuantidade de Pokemons do tipo " << POKEMON_TYPES[tipo] << ": "
-         << countPokemonByType(pokemons, tipo) << endl;
-    break;
-  case 4:
-    // Imprimir informações dos Pokemon por ordem crescente de nome
-    if (calculateTreeDepth(pokemons) == 0)
-      cout << "\n\nNenhum Pokemon cadastrado.\n";
-    else
-      printPokemonInOrder(pokemons);
-    break;
-  case 5:
-    // Imprimir Pokemon por ordem alfabética dos tipos
-    if (calculateTreeDepth(pokemons) == 0)
-      cout << "\n\nNenhum Pokemon cadastrado.\n";
-    else
-      printAllPokemonByType(pokemons);
-    break;
-  case 6:
-    // Quantidade de Pokemon num raio de 100m
-    cout << "A quantidade de Pokemon num raio de 100m é: "
-         << countPokemonInRadius(pokemons, userLocation, 100) << endl;
-    break;
-  case 7:
-    cout << "7 (EXTRA) - Calcular perímetro mínimo - Nao implementada\n";
-    break;
-  case 8:
-    // Inserir Pokemons manualmente
-    cout << "Quantos Pokemons deseja inserir? ";
-    cin >> numPokemons;
-    for (int i = 0; i < numPokemons; i++)
-    {
-      inputPokemon(pokemons, i);
-    }
-    
-    break;
-  case 9:
-    // Remover Pokemon pelo nome
-    cout << "Digite o nome do Pokemon a ser removido: ";
-    cin >> nome;
-    pokemons = removePokemonNode(pokemons, nome);
-    break;
-  case 10:
-    // Créditos do trabalho
-    cout << "Integrantes:\n  Gustavo Pivoto Ambrosio,\n  Yam Sol Britto "
-            "Bertamini,\n"
-            "  Miguel Vianna Streva,\n  Lucca Ribeiro Zogbi,\n  Joao Pedro "
-            "Nunes Vivas de Resende\n";
-    break;
-  case 11:
-    cout << "11 (EXTRA) - Balancear árvore - Nao implementada\n";
-    break;
-  default:
-    cout << "Opçao invalida!" << endl;
+    case -1:
+      return;
+    case 1:
+      // Melhor rota para chegar ao centro Pokemon mais próximo
+      dijkstraShortestPath(cityArray, userLocation);
+      break;
+    case 2:
+      // Verificação de um Pokemon pelo nome
+      cout << "Digite o nome do Pokemon a ser verificado: ";
+      cin >> nome;
+      isPokemonInTree(pokemons, nome);
+      break;
+    case 3:
+      // Contabilizar a quantidade de Pokemon de cada tipo
+      printPokemonTypes();
+      cout << "Digite o tipo de Pokemon:";
+      cin >> tipo;
+      cout << "\n\nQuantidade de Pokemons do tipo " << POKEMON_TYPES[tipo] << ": "
+          << countPokemonByType(pokemons, tipo) << endl;
+      break;
+    case 4:
+      // Imprimir informações dos Pokemon por ordem crescente de nome
+      if (calculateTreeDepth(pokemons) == 0)
+        cout << "\n\nNenhum Pokemon cadastrado.\n";
+      else
+        printPokemonsInOrder(pokemons);
+      break;
+    case 5:
+      // Imprimir Pokemon por ordem alfabética dos tipos
+      if (calculateTreeDepth(pokemons) == 0)
+        cout << "\n\nNenhum Pokemon cadastrado.\n";
+      else
+        printPokemonsByType(pokemons);
+      break;
+    case 6:
+      // Quantidade de Pokemon num raio de 100m
+      cout << "A quantidade de Pokemon num raio de 100m é: "
+          << countPokemonInRadius(pokemons, userLocation, 100) << endl;
+      break;
+    case 7:
+      cout << "7 (EXTRA) - Calcular perímetro mínimo - Nao implementada\n";
+      break;
+    case 8:
+      // Inserir Pokemons manualmente
+      cout << "Quantos Pokemons deseja inserir? ";
+      cin >> numPokemons;
+      for (int i = 0; i < numPokemons; i++) {
+        inputPokemon(pokemons, i);
+      }
+      break;
+    case 9:
+      // Remover Pokemon pelo nome
+      cout << "Digite o nome do Pokemon a ser removido: ";
+      cin >> nome;
+      pokemons = removePokemonNode(pokemons, nome);
+      break;
+    case 10:
+      // Créditos do trabalho
+      cout << "Integrantes:\n  Gustavo Pivoto Ambrosio,\n  Yam Sol Britto "
+              "Bertamini,\n"
+              "  Miguel Vianna Streva,\n  Lucca Ribeiro Zogbi,\n  Joao Pedro "
+              "Nunes Vivas de Resende\n";
+      break;
+    case 11:
+      cout << "11 (EXTRA) - Balancear árvore - Nao implementada\n";
+      // proporcionar uma busca performatica implementando mecanismos de rotacao
+      // para manter a(s) arvore(s) balanceada(s)\n";  Nao implementada
+      break;
+    case 12:
+      changeLocation(cityArray, userLocation); 
+    default:
+      cout << "Opçao invalida!" << endl;
   }
 }
 
@@ -230,9 +239,9 @@ void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation, Node 
 /////////////////////////////////////////////////////////////////////////
 
 // 1ª função - Cadastra as cityArray no sistema
-void registerCities(CityInfo cityArray[], int n_cidades) {
-  int num_adj, codigo_cidade_destino, index;
-  for (int i = 0; i < n_cidades; i++) {
+void inputCities(CityInfo cityArray[]) {
+  int num_adj, codigo_cidade_destino, indexDestino;
+  for (int i = 0; i < NUM_CITIES; i++) {
     cityArray[i].arrayIndex = i;
     cout << "Cidade [" << i + 1 << "] \n";
     cout << "  Nome: ";
@@ -251,46 +260,44 @@ void registerCities(CityInfo cityArray[], int n_cidades) {
       cout << "    Codigo da " << j + 1 << "º cidade adjacente: ";
       cin >> codigo_cidade_destino;
 
-      // Verifica se o código da cidade destino é válido
-      while ((index = findIndexByID(cityArray, codigo_cidade_destino)) == -1) {
+      // Convertendo o código da cidade destino para o índice do vetor
+      while (true) {
+        indexDestino = findIndexByID(cityArray, codigo_cidade_destino);
+        if (indexDestino != -1) break;
         cout << "    Cidade não encontrada. Digite um código válido: ";
         cin >> codigo_cidade_destino;
       }
 
       cityArray[i].cityEdges.push_back(
-          {cityArray[i].codigo, codigo_cidade_destino, INT_MAX});
-      cityArray[index].cityEdges.push_back(
-          {codigo_cidade_destino, cityArray[i].codigo, INT_MAX});
+          {i, indexDestino, INT_MAX});
+      cityArray[indexDestino].cityEdges.push_back(
+          {indexDestino, i, INT_MAX});
     }
   }
-  computeEdgeDistances(cityArray, n_cidades);
+  computeEdgeDistances(cityArray);
 }
 
 // 2ª função - Imprime o menu de opções para o usuário.
 
 int showMenu() {
-  int opc;
   cout << "===================== MENU =====================\n";
-  cout << "1 - Ir para centro Pokemon mais próximo;\n"; // Nao implementada
-  cout << "2 - Verificacao Pokemon;\n";
-  cout << "3 - Quantidade de Pokemons (por tipo);\n";
-  cout << "4 - Mostrar Pokemons;\n";
-  cout << "5 - Mostrar Pokemons (por tipos);\n";
-  cout << "6 - Pokemons próximos (100 m);\n";
-  cout << "7 (EXTRA) - Calcular perímetro mínimo que englobe todos os "
-          "pokemons em 100 m;\n"; // Nao implementada
-  cout << "8 - Inserir Pokemon;\n";
-  cout << "9 - Remover Pokemons;\n";
-  cout << "10 - Creditos;\n";
-  cout << "11 (EXTRA) - Balancear árvore;\n"; // proporcionar uma busca
-                                              // performatica implementando
-                                              // mecanismos de rotacao para
-                                              // manter a(s) arvore(s)
-                                              // balanceada(s)\n"; // Nao
-                                              // implementada
+  cout << "[1] Encontrar o centro Pokemon mais próximo;\n";
+  cout << "[2] Buscar Pokemon;\n";
+  cout << "[3] Quantidade de Pokemons (por tipo);\n";
+  cout << "[4] Mostrar Pokemons;\n";
+  cout << "[5] Mostrar Pokemons (por ordem de tipos);\n";
+  cout << "[6] Pokemons próximos (100 m);\n";
+  cout << "[7] Calcular perímetro que englobe todos os pokemons em 100 m; (EXTRA) \n"; // Nao implementada
+  cout << "[8] Inserir Pokemon;\n";
+  cout << "[9] Remover Pokemons;\n";
+  cout << "[10] Creditos;\n";
+  cout << "[11] Balancear árvore; (EXTRA) \n"; // Nao implementada
+  cout << "[12] Viajar para uma cidade;\n";
+  cout << "[0] Sair;\n";
+  cout << "=========================== | | ========B===================\n";
   cout << "Escolha uma opcao: ";
+  int opc;
   cin >> opc;
-  cout << "=========================== | | ===========================\n";
   return opc;
 }
 
@@ -310,6 +317,7 @@ void printPokemonTypes() {
 }
 
 void clearScreen() { cout << "\x1B[2J\x1B[H"; }
+
 inline void pauseProgram() {
   cout << "\n\n-----------------------------\n";
   cout << "  Press Enter to continue...\n";
@@ -318,47 +326,8 @@ inline void pauseProgram() {
   cin.get();
 }
 
-// // 3ª função - Melhor rota para chegar ao centro Pokemon mais próximo
-// resposta shortest_path_dijkstra(list<edge> edge[], int vertices, int start,
-//                                 int end) {
-//   bool intree[vertices];
-//   int distance[vertices], parent[vertices], saltos[vertices];
-
-//   for (int u = 0; u < vertices; u++) {
-//     intree[u] = false;
-//     distance[u] = INT_MAX;
-//     parent[u] = -1;
-//     saltos[u] = INT_MAX;
-//   }
-//   distance[start] = 0;
-//   saltos[start] = 0;
-//   int v = start;
-//   while (intree[v] == false) {
-//     intree[v] = true;
-//     list<edge>::iterator p;
-//     for (p = edge[v].begin(); p != edge[v].end(); p++) {
-//       int dest = p->dest;
-//       int weight = p->custo;
-//       if (distance[dest] > distance[v] + weight) {
-//         distance[dest] = distance[v] + weight;
-//         parent[dest] = v;
-//         saltos[dest] = saltos[v] + 1;
-//       }
-//     }
-//     v = 0;
-//     int dist = INT_MAX;
-//     for (int u = 0; u < vertices; u++) {
-//       if (intree[u] == false && distance[u] < dist) {
-//         dist = distance[u];
-//         v = u;
-//       }
-//     }
-//   }
-//   return {distance[end], saltos[end]};
-// }
-
 // 4ª função - Verificação de um Pokemon pelo nome
-void verifyPokemon(Node *root, string nome) {
+void isPokemonInTree(Node *root, string nome) {
 
   Node *result = searchPokemonInTree(root, nome);
   if (result != NULL)
@@ -396,15 +365,15 @@ int countPokemonByType(Node *root, int tipo) {
 }
 
 // 6ª função - Imprimir informações dos Pokemon por ordem crescente de nome
-void printPokemonInOrder(Node *root) {
+void printPokemonsInOrder(Node *root) {
   if (root == NULL)
     return;
-  printPokemonInOrder(root->left);
+  printPokemonsInOrder(root->left);
   printf("Nome: %s, Tipo 1: %s, Tipo 2: %s, Posicao: (%d, %d)\n",
          root->data.nome.c_str(), POKEMON_TYPES[root->data.primaryType].c_str(),
          POKEMON_TYPES[root->data.secoundaryType].c_str(),
          root->data.position.x, root->data.position.y);
-  printPokemonInOrder(root->right);
+  printPokemonsInOrder(root->right);
 }
 
 // 7ª função - Im primir Pokemon por ordem alfabética dostipos
@@ -415,18 +384,21 @@ int sortFunction(const Pokemon &a, const Pokemon &b) {
   return a.nome < b.nome;
 }
 
-void printAllPokemonByType(Node *root) {
+void printPokemonsByType(Node *root) {
   vector<Pokemon> pokemons;
   collectPokemons(root, pokemons);
 
   sort(pokemons.begin(), pokemons.end(), sortFunction);
 
+  cout << "\n\n\n\n";
+  cout << "===================== POKEMONS =====================\n";
   for (const Pokemon &p : pokemons) {
-    printf("Nome: %s, Tipo 1: %s, Tipo 2: %s, Posicao: (%d, %d)\n",
+    printf(" %s (%s - %s)\n",
            p.nome.c_str(), POKEMON_TYPES[p.primaryType].c_str(),
-           POKEMON_TYPES[p.secoundaryType].c_str(), p.position.x, p.position.y);
+           POKEMON_TYPES[p.secoundaryType].c_str());
   }
 }
+
 void collectPokemons(Node *root, vector<Pokemon> &pokemons) {
   if (root == NULL) {
     return;
@@ -524,6 +496,17 @@ Node *getSmallestNode(Node *root) {
 /// auxiliares
 /////////////////////////////////////////////////////////////////////////
 
+void welcomeMessage()
+{
+  cout << "\n\n\n\n\n\n\n";
+  cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+  cout << "Olá, Treinador(a) Pokemon! Bem-vindo a sua Pokedex. Informamos que "
+          "voce está em uma área de 1000 x 1000 m². Sua Pokedex possui varias "
+          "funcionalidades que o auxiliarão em sua aventura. Boa caçada!\n";
+  cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+  cout << "\n\n";
+}
+
 int   calculateTreeDepth(Node *root) {
   if (root == NULL)
     return 0;
@@ -539,9 +522,9 @@ int findIndexByID(CityInfo cityArray[], int targetCityId) {
   return -1;
 }
 
-void computeEdgeDistances(CityInfo cityArray[], int n_cidades) {
+void computeEdgeDistances(CityInfo cityArray[]) {
   // calculate and store distances of cities
-  for (int i = 0; i < n_cidades; i++) {
+  for (int i = 0; i < NUM_CITIES; i++) {
     for (edge &e : cityArray[i].cityEdges) {
       e.weight = calculateDistance(cityArray[i].position, cityArray[e.dest].position);
     }
@@ -560,8 +543,8 @@ double calculateDistance(Ponto p1, Ponto p2) {
   return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
 }
 
-int verificar_cidades(CityInfo *cityArray, int num_cities, Ponto userLocation) {
-  for (int i = 0; i < num_cities; i++) {
+int verificar_cidades(CityInfo *cityArray, Ponto userLocation) {
+  for (int i = 0; i < NUM_CITIES; i++) {
     if (userLocation.x == cityArray[i].position.x &&
         userLocation.y == cityArray[i].position.y) {
       return cityArray[i].arrayIndex;
@@ -570,56 +553,19 @@ int verificar_cidades(CityInfo *cityArray, int num_cities, Ponto userLocation) {
   return -1; // Cidade não encontrada
 }
 
-/*void dijkstraShortestPath(CityInfo *cityArray, int num_cities, Ponto
-userLocation) { int start = verificar_cidades(cityArray, num_cities,
-userLocation); if (start == -1) { cout << "Cidade atual nao encontrada." <<
-endl; return;
-  }
-  list<edge> cityEdges[num_cities];
-  for (int i = 0; i < num_cities; i++) {
-    for (const edge &a : cityArray[i].cityEdges) {
-      cityEdges[i].push_back(a);
-    }
-  }
-
-  int end = -1;
-  int min_distance = INT_MAX;
-  int min_jumps = INT_MAX;
-
-  for (int i = 0; i < num_cities; i++) {
-    if (cityArray[i].isHubPresent) {
-      resposta res = shortest_path_dijkstra(cityEdges, num_cities,
-userLocation); if (res.distance < min_distance || (res.distance ==
-min_distance && res.jumps < min_jumps)) { min_distance = res.distance; min_jumps
-= res.jumps; end = i;
-      }
-    }
-  }
-
-  if (end == -1) {
-    cout << "Nao foi possivel encontrar um centro Pokemon." << endl;
-    return;
-  }
-
-  cout << "Melhor rota para chegar ao centro Pokemon mais proximo:" << endl;
-  resposta res = shortest_path_dijkstra(cityEdges, num_cities, start, end);
-  cout << "Distancia: " << res.distance << endl;
-  cout << "Saltos: " << res.jumps << endl;
-}*/
-
-void dijkstraShortestPath(CityInfo cityArray[], int num_cities,
-                        Ponto userLocation) {
-  int start = verificar_cidades(cityArray, num_cities, userLocation);
+void dijkstraShortestPath(CityInfo cityArray[],
+                        Ponto &userLocation) {
+  int start = verificar_cidades(cityArray, userLocation);
   if (start == -1) {
     cout << "Não foi possível encontrar nenhum caminho para as cidades "
             "existentes.\n";
     return;
   }
 
-  bool intree[num_cities];
-  int distance[num_cities], parent[num_cities];
+  bool intree[NUM_CITIES];
+  int distance[NUM_CITIES], parent[NUM_CITIES];
 
-  for (int u = 0; u < num_cities; u++) {
+  for (int u = 0; u < NUM_CITIES; u++) {
     intree[u] = false;
     distance[u] = INT_MAX;
     parent[u] = -1;
@@ -641,29 +587,91 @@ void dijkstraShortestPath(CityInfo cityArray[], int num_cities,
     }
     v = 0;
     int dist = INT_MAX;
-    for (int u = 0; u < num_cities; u++) {
+    for (int u = 0; u < NUM_CITIES; u++) {
       if (intree[u] == false && distance[u] < dist) {
         dist = distance[u];
         v = u;
       }
     }
   }
-  // find smallest value in distance array to a city with hub
-  bool booltest = false;
-  while(!booltest)
-  {
-    int smallestPos = findSmallestDistance(cityArray, num_cities, distance, i);
-    if (cityArray[smallestPos].isHubPresent)
-    {
-      booltest = cityArray[smallestPos].isHubPresent;
-      cout << "Cidade mais próxima com centro:\n";
-      cout << "Distancia: " << distance[smallestPos] << endl;
-      cout << "Rota: ";
-      printPath(cityArray, parent, i, smallestPos);
+
+  // find nearest hub
+  int nearestHubIndex = getNearestHubIndex(cityArray, distance);
+  if (nearestHubIndex == -1) {
+    cout << "Nao foi possivel encontrar um centro Pokemon.\n";
+    return;
+  }
+
+    int nearestHubDistance = distance[nearestHubIndex];
+    if (nearestHubDistance == 0){
+        cout << "Você já está em um centro Pokemon.\n";
+        return;
     }
-    else {
-      distance[smallestPos] = INT_MAX;
+    
+    cout << "Cidade mais próxima com centro:" 
+    << cityArray[nearestHubIndex].name << endl;
+    cout << "Distancia: " << nearestHubDistance << endl;
+    cout << "Rota: ";
+    printPath(cityArray, parent, nearestHubIndex, start);
+
+    int opc;
+    cout << "Dejesa ir para o centro Pokemon mais próximo? (0,1): ";
+    cin >> opc;
+    if (opc == 1){
+        userLocation.x = cityArray[nearestHubIndex].position.x;
+        userLocation.y = cityArray[nearestHubIndex].position.y;
+        cout << "Você chegou ao centro Pokemon mais próximo.\n";
+    } else {
+        cout << "Você optou por não ir ao centro Pokemon mais próximo.\n";
+    }
+    
+}
+          
+  // find smallest value in distance array to a city with hub
+int getNearestHubIndex(CityInfo cityArray[], int distance[]) {
+  int smallest = INT_MAX;
+  int smallestPos = -1;
+  for (int j = 0; j < NUM_CITIES; j++)
+  {
+    if ((distance[j] < smallest) && (cityArray[j].isHubPresent)) {
+      smallest = distance[j];
+      smallestPos = j;
     }
   }
-  
+  return smallestPos;
+}
+
+
+void printPath(CityInfo cityArray[], int parent[], int nearestHubIndex, int startIndex) {
+
+  list<int> lista;
+
+  // Create a list all cities in the path
+  int index = nearestHubIndex;
+  while (index != startIndex) {
+    index = parent[index];
+    lista.push_front(index);
+  } 
+
+  list<int>::iterator p;
+  for(p = lista.begin(); p != lista.end(); p--) {
+    cout << cityArray[*p].name << " -> ";
+  }
+  cout << cityArray[nearestHubIndex].name << endl;
+}
+
+void changeLocation(CityInfo cityArray[], Ponto &userLocation){
+  int opc;
+
+  cout << "Escolha a cidade para onde deseja viajar:\n";
+  for (int i = 0; i < NUM_CITIES; i++){
+    cout << i << " - " << cityArray[i].name << "(" << cityArray[i].codigo << ")" << endl;
+  }
+
+  cout << "Digite o código da cidade: ";
+  cin >> opc;
+  int index = findIndexByID(cityArray, opc);
+  userLocation.x = cityArray[index].position.x;
+  userLocation.y = cityArray[index].position.y;
+  cout << "Você chegou a cidade " << cityArray[index].name << endl;
 }
