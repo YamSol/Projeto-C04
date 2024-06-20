@@ -77,7 +77,7 @@ struct Node {
 int showMenu();
 void clearScreen();
 void pauseProgram();
-void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation, Node *&pokemons);
+bool handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation, Node *&pokemons);
 void welcomeMessage();
 
 // -------  USER FUNCTIONS
@@ -99,7 +99,7 @@ void printPath(CityInfo cityArray[], int parent[], int nearestHubIndex, int star
 // ------- POKEMON FUNCTIONS
 
 void  inputPokemon(Node *&root, int i);
-Node *insertPokemonNode(Node *root, Pokemon p);
+Node *insertPokemonNode(Node *&root, Pokemon p);
 Node *removePokemonNode(Node *root, string nome);
 void  destroyPokemonTree(Node *root);
 void  printPokemonsInOrder(Node *root);
@@ -138,8 +138,9 @@ int main() {
 
     int opc = showMenu();
     clearScreen();
-    handleUserOption(opc, cityArray, userLocation, pokemons);
-
+    if (!handleUserOption(opc, cityArray, userLocation, pokemons))
+      break;
+    
     pauseProgram();
     clearScreen();
   }
@@ -151,7 +152,7 @@ int main() {
 
 void welcomeMessage();
 
-void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation,
+bool handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation,
                       Node *&pokemons) {
   // variaveis de leitura
   string nome;
@@ -160,7 +161,7 @@ void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation,
   
   switch (opc) {
     case -1:
-      return;
+      return false;
     case 1:
       // Melhor rota para chegar ao centro Pokemon mais próximo
       dijkstraShortestPath(cityArray, userLocation);
@@ -232,6 +233,7 @@ void handleUserOption(int opc, CityInfo cityArray[9], Ponto &userLocation,
     default:
       cout << "Opçao invalida!" << endl;
   }
+  return true;
 }
 
 //////////////////////////////////////////////////////////////////// Funções
@@ -293,8 +295,8 @@ int showMenu() {
   cout << "[10] Creditos;\n";
   cout << "[11] Balancear árvore; (EXTRA) \n"; // Nao implementada
   cout << "[12] Viajar para uma cidade;\n";
-  cout << "[0] Sair;\n";
-  cout << "=========================== | | ========B===================\n";
+  cout << "[-1] Sair;\n";
+  cout << "=========================== | | ================\n";
   cout << "Escolha uma opcao: ";
   int opc;
   cin >> opc;
@@ -365,14 +367,14 @@ int countPokemonByType(Node *root, int tipo) {
 }
 
 // 6ª função - Imprimir informações dos Pokemon por ordem crescente de nome
+int pokemon_pos = 0;
 void printPokemonsInOrder(Node *root) {
   if (root == NULL)
     return;
   printPokemonsInOrder(root->left);
-  printf("Nome: %s, Tipo 1: %s, Tipo 2: %s, Posicao: (%d, %d)\n",
-         root->data.nome.c_str(), POKEMON_TYPES[root->data.primaryType].c_str(),
-         POKEMON_TYPES[root->data.secoundaryType].c_str(),
-         root->data.position.x, root->data.position.y);
+  printf("[%d] %s (%s - %s)\n",
+         pokemon_pos++, root->data.nome.c_str(), POKEMON_TYPES[root->data.primaryType].c_str(),
+         POKEMON_TYPES[root->data.secoundaryType].c_str());
   printPokemonsInOrder(root->right);
 }
 
@@ -392,9 +394,10 @@ void printPokemonsByType(Node *root) {
 
   cout << "\n\n\n\n";
   cout << "===================== POKEMONS =====================\n";
+  int i = 0;
   for (const Pokemon &p : pokemons) {
-    printf(" %s (%s - %s)\n",
-           p.nome.c_str(), POKEMON_TYPES[p.primaryType].c_str(),
+    printf("[%d] %s (%s - %s)\n",
+           i++, p.nome.c_str(), POKEMON_TYPES[p.primaryType].c_str(),
            POKEMON_TYPES[p.secoundaryType].c_str());
   }
 }
@@ -446,7 +449,7 @@ void inputPokemon(Node *&root, int i) {
   root = insertPokemonNode(root, p);
 }
 
-Node *insertPokemonNode(Node *root, Pokemon p) {
+Node *insertPokemonNode(Node *&root, Pokemon p) {
   if (root == NULL) {
     Node *root = new Node();
     root->data = p;
