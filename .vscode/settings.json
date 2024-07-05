@@ -96,31 +96,5 @@
         "text_encoding": "cpp",
         "typeindex": "cpp",
         "valarray": "cpp"
-    },
-    "cSpell.ignoreWords": [
-        "Britto",
-        "Codigo",
-        "Creditos",
-        "Joao",
-        "Opçao",
-        "Pokedex",
-        "Pokemons",
-        "Pokédex",
-        "Posicao",
-        "Streva",
-        "Verificacao",
-        "Vianna",
-        "Zogbi",
-        "alfabetica",
-        "auxiliarao",
-        "dijkstra",
-        "estao",
-        "localizacao",
-        "pokemons",
-        "posicao",
-        "possivel",
-        "rotacao",
-        "usuario"
-    ],
-    "cSpell.enabled": false
+    }
 }
